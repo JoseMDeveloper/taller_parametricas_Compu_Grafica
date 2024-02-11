@@ -1,6 +1,23 @@
 import numpy as np
 from OpenGL.GL import *
 
+import os
+
+import pygame
+from OpenGL.GL import *
+from OpenGL.GLU import *
+from pygame.locals import *
+
+os.environ["SDL_VIDEO_CENTERED"] = '1'
+
+
+def main():
+    pygame.init()
+    display = (1000, 1080)
+    pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
+
+    gluPerspective(65, (display[0] / display[1]), 0.1, 50.0)
+    glTranslatef(0.0, 0, -20)
 
 def plot_parametric_mesh(points_matrix): #hace el mallado
     glPointSize(3)
@@ -61,51 +78,19 @@ def generate_sphere_points(
     return point_matrix
 
 
-def generate_toroid_points(
-        radius_1=4,
-        radius_2=1,
-        alpha_samples=20,
-        beta_samples=20
-):
-    point_matrix = []
-    for alpha in np.linspace(0, 2 * np.pi, alpha_samples):
-        point_array = []
-        for beta in np.linspace(0, 2 * np.pi, beta_samples):
-            point_array.append(
-                (
-                    (radius_1 + radius_2 * np.cos(beta)) * np.sin(alpha),
-                    (radius_1 + radius_2 * np.cos(beta)) * np.cos(alpha),
-                    radius_2 * np.sin(beta)
-                )
-            )
-        point_matrix.append(point_array)
-    return point_matrix
+main()
+run = True
+points_matrix = generate_sphere_points()
+while run:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            run = False
+    glRotatef(4, 0, 1, 0);
 
-def generate_botella_klein(
-        radius_1=4,
-        radius_2=1,
-        alpha_samples=50,
-        beta_samples=50,
-        escala=2
-):
-    point_matrix = []
-    for alpha in np.linspace(0, 2 * np.pi, alpha_samples):
-        point_array = []
-        for beta in np.linspace(0, 2 * np.pi, beta_samples):
-            point_array.append(
-                (
-                    (6 / escala * np.cos(alpha) * (1 / escala + np.sin(alpha)) + 4 / escala * (
-                            1 / escala - np.cos(alpha) / 2 / escala) * np.cos(beta) * np.cos(
-                        ((np.sign(np.pi - alpha) + 1 / escala) / 2 / escala) * alpha) * np.sign(np.pi - alpha)),
-                    (16 / escala * np.sin(alpha) + 4 / escala * (1 / escala - np.cos(alpha) / 2 / escala) * np.cos(
-                        beta) * np.sin(((np.sign(np.pi - alpha) + 1 / escala) / 2 / escala) * alpha)),
-                    (4 / escala * (1 / escala - np.cos(alpha) / 2 / escala) * np.sin(beta))
-                )
-            )
-        point_array.append(point_array[0])  # Agregar el primer punto al final de la fila para cerrar la malla
-        point_matrix.append(point_array)
 
-    # Agregar la última fila duplicando la primera fila para cerrar completamente la malla
-    point_matrix.append(point_matrix[0])
-
-    return point_matrix
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    plot_parametric_mesh(points_matrix)
+    pygame.display.flip()
+    pygame.time.wait(10)
+pygame.quit()
+quit()
