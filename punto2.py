@@ -11,8 +11,15 @@ eps = 2
 xk = np.linspace(-radius, radius, 55)
 x = np.linspace(-radius, radius, 200)
 
+def heart_equation(t, a=1):
+    x = a * 16 * np.sin(t)**3
+    y = a * (13 * np.cos(t) - 5 * np.cos(2*t) - 2 * np.cos(3*t) - np.cos(4*t))
+    return x, y
+
 def true_fn(x, radius):
-    return np.sqrt(np.where(x <= radius, radius**2 - x**2, np.nan))
+    t = np.linspace(0, np.pi, len(x))
+    x_heart, y_heart = heart_equation(t, radius)
+    return y_heart
 
 def euclidean_distance(x, xk):
     return np.sqrt(((x.reshape(-1, 1)) - xk.reshape(1, -1)) ** 2)
@@ -55,14 +62,21 @@ while True:
     glBegin(GL_LINE_STRIP)
     glColor3f(1, 0, 0)
     for i in range(len(x)):
-        glVertex3f(x[i], true_fn(x, radius)[i], 0)
+        t = i * np.pi / (len(x) - 1)
+        x_heart, y_heart = heart_equation(t, radius)
+        # Multiplicar por el factor de escala (1/16)
+        glVertex3f(x_heart / 16, y_heart / 16, 0)
     glEnd()
 
     # Dibujar la interpolación
     glBegin(GL_LINE_STRIP)
-    glColor3f(0, 0, 1)
+    
+    glColor3f(0, 0, 0)
     for i in range(len(x)):
-        glVertex3f(x[i], interp(x)[i], 0)
+        t = i * np.pi / (len(x) - 1)
+        x_heart, y_heart = heart_equation(t, radius)
+        # Multiplicar por el factor de escala (1/16)
+        glVertex3f(x_heart / 16, interp(x)[i] / 16, 0)
     glEnd()
 
     # Dibujar puntos de muestra
