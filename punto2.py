@@ -1,70 +1,76 @@
 import numpy as np
-import pygame
-import scipy.interpolate as interpolate
 from OpenGL.GL import *
+import pygame
 from OpenGL.GLU import *
 from pygame.locals import *
 
+# Parámetros
+radius = 2  # Puedes ajustar el radio según sea necesario
+eps = 2
+
+xk = np.linspace(-radius, radius, 55)
+x = np.linspace(-radius, radius, 200)
+
+def true_fn(x, radius):
+    return np.sqrt(np.where(x <= radius, radius**2 - x**2, np.nan))
+
+def euclidean_distance(x, xk):
+    return np.sqrt(((x.reshape(-1, 1)) - xk.reshape(1, -1)) ** 2)
+
+def gauss_rbf(radius, eps):
+    return np.exp(-(eps * radius) ** 2)
+
+class RBFinterp(object):
+    def __init__(self, eps):
+        self.eps = eps
+
+    def fit(self, xk, yk):
+        self.xk = xk
+        transformation = gauss_rbf(euclidean_distance(xk, xk), self.eps)
+        self.w_ = np.linalg.solve(transformation, yk)
+
+    def __call__(self, xn):
+        transformation = gauss_rbf(euclidean_distance(xn, self.xk), self.eps)
+        return transformation.dot(self.w_)
+
+interp = RBFinterp(eps)
+yk = true_fn(xk, radius)
+interp.fit(xk, yk)
+
 pygame.init()
+display = (800, 600)
+pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
+gluPerspective(45, (display[0] / display[1]), 0.1, 50.0)
+glTranslatef(0.0, 0.0, -5)
 
-screen_width = 800
-screen_height = 800
-ortho_left = -10
-ortho_right = 10
-ortho_top = -10
-ortho_bottom = 10
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
 
-screen = pygame.display.set_mode((screen_width, screen_height), DOUBLEBUF | OPENGL)
-pygame.display.set_caption('Polygons in PyOpenGL')
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-
-def init_ortho():
-    glMatrixMode(GL_PROJECTION)
-    glLoadIdentity()
-    gluOrtho2D(ortho_left, ortho_right, ortho_top, ortho_bottom)
-
-
-def calculate_coordinates():
-    samples = 100
-    x_coord = np.linspace(0, 2 * np.pi, samples)
-    y_coord = np.linspace(0, 2 * np.pi, samples)
-
-    x_flat, y_flat = np.meshgrid(x_coord, y_coord)
-    z_flat = np.sin(x_flat) * np.cos(y_flat)  # Genera una superficie para z en función de x y y
-
-    x_grid, y_grid = np.meshgrid(x_coord, y_coord)
-    z_gridded = interpolate.griddata((x_flat.flatten(), y_flat.flatten()), z_flat.flatten(), (x_grid, y_grid),
-                                     method='linear')
-
-    return z_gridded
-
-
-def plot_circle(z_gridded, radius=5, samples=10):
+    # Dibujar la función verdadera
     glBegin(GL_LINE_STRIP)
-    for row in z_gridded:
-        for t in row:
-            glVertex2f(radius * np.cos(t), radius * np.sin(t))
+    glColor3f(1, 0, 0)
+    for i in range(len(x)):
+        glVertex3f(x[i], true_fn(x, radius)[i], 0)
     glEnd()
 
-def main():
-    done = False
-    init_ortho()
-    while not done:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                done = True
+    # Dibujar la interpolación
+    glBegin(GL_LINE_STRIP)
+    glColor3f(0, 0, 1)
+    for i in range(len(x)):
+        glVertex3f(x[i], interp(x)[i], 0)
+    glEnd()
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        glMatrixMode(GL_MODELVIEW)
-        glLoadIdentity()
-        glPointSize(5)
-        z_gridded = calculate_coordinates()
-        plot_circle(z_gridded)
-        pygame.display.flip()
-        pygame.time.wait(100)
-    pygame.quit()
+    # Dibujar puntos de muestra
+    glBegin(GL_POINTS)
+    glColor3f(0, 1, 0)
+    for i in range(len(xk)):
+        glVertex3f(xk[i], true_fn(xk, radius)[i], 0)
+    glEnd()
 
-
-if __name__ == '__main__':
-    main()
-
+    pygame.display.flip()
+    pygame.time.wait(10)
