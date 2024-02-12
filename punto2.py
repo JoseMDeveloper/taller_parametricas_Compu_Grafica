@@ -82,9 +82,9 @@ while True:
     glColor3f(0, 0, 1)
     for i in range(len(x)):
         for z in range(len(x)):
-            y_val = interp(np.array([x[i]]))
-            z_val = interp(np.array([x[z]]))
-            glVertex3f(x[i], y_val[0], z_val[0])
+            y_val = interp(np.array([x[i]]))  # Aquí está el problema
+            z_val = interp(np.array([x[z]]))  # Aquí está el problema
+            glVertex3f(x[i], y_val[0][0], z_val[0][0])
     glEnd()
 
     # Dibujar puntos de muestra
@@ -109,9 +109,9 @@ while True:
     glColor3f(0, 0, 1)
     for i in range(len(x)):
         for z in range(len(x)):
-            y_val = interp2(np.array([x[i]]))
-            z_val = interp(np.array([x[z]]))
-            glVertex3f(x[i], y_val[0], z_val[0])
+            y_val = interp2(np.array([x[i]]))  # Aquí está el problema
+            z_val = interp(np.array([x[z]]))  # Aquí está el problema
+            glVertex3f(x[i], y_val[0][0], z_val[0][0])
     glEnd()
 
     # Dibujar puntos de muestra
