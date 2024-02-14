@@ -19,7 +19,7 @@ def main():
 
 def plot_parametric_mesh(points_matrix): #hace el mallado
     glPointSize(3)
-    n_rows = len(points_matrix) - 1
+    n_rows = len(points_matrix)
     n_cols = len(points_matrix[0])
 
 
@@ -37,18 +37,20 @@ def plot_parametric_mesh(points_matrix): #hace el mallado
             glBegin(GL_LINES)
             glColor3fv(colores[0])
             glVertex3fv(points_matrix[i][j])
+
             glColor3fv(colores[1])
             glVertex3fv(points_matrix[i][(j + 1) % n_cols])
 
             glVertex3fv(points_matrix[i][(j + 1) % n_cols])
             glColor3fv(colores[2])
+
             glVertex3fv(points_matrix[(i + 1) % n_rows][(j + 1) % n_cols])
 
             glVertex3fv(points_matrix[(i + 1) % n_rows][(j + 1) % n_cols])
             glColor3fv(colores[5])
             glVertex3fv(points_matrix[(i + 1) % n_rows][j])
-
             glVertex3fv(points_matrix[(i + 1) % n_rows][j])
+
             glColor3fv(colores[0])
             glVertex3fv(points_matrix[i][j])
 
@@ -95,36 +97,9 @@ def generate_toroid_points(
         point_matrix.append(point_array)
     return point_matrix
 
-import numpy as np
+
 
 def generate_botella_klein(alpha_samples=40, beta_samples=40):
-    def kleinFlasche(u, v):
-        cos = np.cos
-        sin = np.sin
-        pi = np.pi
-        exp = np.exp
-        b = 2
-        h = 6
-        r = 2 - cos(u)
-        if u < np.pi:
-            x = b * (1 - sin(u)) * cos(u) + r * cos(v) * (2 * exp(-(u/2 - pi)**2) - 1)
-            z = h * sin(u) + 0.5 * r * sin(u) * cos(v) * exp(-(u - 3 * pi / 2)**2)
-        else:
-            x = b * (1 - sin(u)) * cos(u) + r * cos(v + pi) * (2 * exp(-(u/2 - pi)**2) - 1)
-            z = h * sin(u) + 0.5 * r * sin(u) * cos(v + pi) * exp(-(u - 3 * pi / 2)**2)
-        y = r * sin(v)
-        return [x, y, z]
-
-    point_matrix = []
-    for alpha in np.linspace(0, 2 * np.pi, alpha_samples):
-        point_array = []
-        for beta in np.linspace(0, 2 * np.pi, beta_samples):
-            point_array.append(kleinFlasche(alpha, beta))
-        point_matrix.append(point_array)
-    return point_matrix
-
-#OPCION B
-"""def generate_botella_klein(alpha_samples=40, beta_samples=40):
     def kleinFlasche(u, v):
         cos = np.cos
         sin = np.sin
@@ -147,7 +122,7 @@ def generate_botella_klein(alpha_samples=40, beta_samples=40):
             point_array.append(kleinFlasche(alpha, beta))
         point_matrix.append(point_array)
     return point_matrix
-"""
+
 
 
 main()
